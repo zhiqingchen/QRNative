@@ -53,8 +53,8 @@ Settings currently control:
 
 `Resources/Info.plist` declares `NSServices` entries:
 
-- `Generate QR Code with QRNative` accepts selected text and calls `generateQRCodeFromSelection:userData:error:`.
-- `Recognize QR Code with QRNative` accepts selected image/file input and calls `recognizeQRCodeFromSelection:userData:error:`.
+- `QRNative: Generate QR from Selected Text` accepts selected text and calls `generateQRCodeFromSelection:userData:error:`.
+- `QRNative: Recognize QR in Selected Image` accepts selected image/file input and calls `recognizeQRCodeFromSelection:userData:error:`.
 
 `QRNativeServicesProvider` is installed as `NSApp.servicesProvider` during app startup. Service results are presented with `FloatingResultPresenter`, which positions an `NSPanel` close to the current pointer while also updating the main app state.
 

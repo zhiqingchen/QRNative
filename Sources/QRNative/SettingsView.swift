@@ -18,6 +18,11 @@ struct SettingsView: View {
                     Label("Shortcuts", systemImage: "keyboard")
                 }
 
+            SelectionSettingsPane()
+                .tabItem {
+                    Label("Selection", systemImage: "cursorarrow.rays")
+                }
+
             DataSettingsPane()
                 .tabItem {
                     Label("Data", systemImage: "externaldrive")
@@ -30,7 +35,7 @@ struct SettingsView: View {
         }
         .environmentObject(appState)
         .environmentObject(settings)
-        .frame(width: 560, height: 430)
+        .frame(width: 640, height: 500)
     }
 }
 
@@ -86,30 +91,113 @@ private struct ShortcutSettingsPane: View {
             ShortcutRow(title: "Save PNG", shortcut: "⌘S")
             ShortcutRow(title: "Focus input", shortcut: "⌘L")
             ShortcutRow(title: "Focus history search", shortcut: "⌘F")
-
-            Divider()
-
-            HStack(alignment: .top, spacing: 14) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Services")
-                        .font(.headline)
-                    Text("Use selected text or selected images from other apps through Right Click > Services > QRNative.")
-                    Text("Configure service shortcuts in System Settings > Keyboard > Keyboard Shortcuts > Services.")
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-                Spacer()
-
-                Button {
-                    SystemSettingsOpener.openKeyboardShortcuts()
-                } label: {
-                    Label("Open", systemImage: "arrow.up.forward.app")
-                }
-            }
         }
         .formStyle(.grouped)
         .padding(20)
+    }
+}
+
+private struct SelectionSettingsPane: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Use QRNative from any app")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+
+                Text("QRNative adds macOS Services for selected text and selected images. macOS keeps these off until you enable them once.")
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack(spacing: 12) {
+                Button {
+                    SystemSettingsOpener.openKeyboardShortcuts()
+                } label: {
+                    Label("Open Keyboard Shortcuts", systemImage: "arrow.up.forward.app")
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button {
+                    copyServiceNames()
+                } label: {
+                    Label("Copy Service Names", systemImage: "doc.on.doc")
+                }
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 10) {
+                ServiceSetupStep(
+                    number: "1",
+                    title: "Open Services",
+                    detail: "In System Settings, choose Keyboard Shortcuts, then select Services in the left sidebar."
+                )
+                ServiceSetupStep(
+                    number: "2",
+                    title: "Enable text selection",
+                    detail: "Expand Text and enable QRNative: Generate QR from Selected Text."
+                )
+                ServiceSetupStep(
+                    number: "3",
+                    title: "Enable image selection",
+                    detail: "Expand Images and enable QRNative: Recognize QR in Selected Image."
+                )
+                ServiceSetupStep(
+                    number: "4",
+                    title: "Optional keyboard shortcuts",
+                    detail: "Double-click None on the right side of either service, then press your shortcut."
+                )
+            }
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("After setup")
+                    .font(.headline)
+
+                Label("Select text in any app, then Right Click > Services > QRNative: Generate QR from Selected Text.", systemImage: "text.cursor")
+                Label("Select an image or image file, then Right Click > Services > QRNative: Recognize QR in Selected Image.", systemImage: "photo")
+            }
+            .foregroundStyle(.secondary)
+
+            Spacer()
+        }
+        .padding(20)
+    }
+
+    private func copyServiceNames() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(
+            """
+            QRNative: Generate QR from Selected Text
+            QRNative: Recognize QR in Selected Image
+            """,
+            forType: .string
+        )
+    }
+}
+
+private struct ServiceSetupStep: View {
+    let number: String
+    let title: String
+    let detail: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text(number)
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundStyle(.white)
+                .frame(width: 22, height: 22)
+                .background(Color.accentColor, in: Circle())
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .fontWeight(.semibold)
+                Text(detail)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }
 

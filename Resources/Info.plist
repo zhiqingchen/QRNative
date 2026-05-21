@@ -32,7 +32,7 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Generate QR Code with QRNative</string>
+				<string>QRNative: Generate QR from Selected Text</string>
 			</dict>
 			<key>NSMessage</key>
 			<string>generateQRCodeFromSelection</string>
@@ -49,7 +49,7 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Recognize QR Code with QRNative</string>
+				<string>QRNative: Recognize QR in Selected Image</string>
 			</dict>
 			<key>NSMessage</key>
 			<string>recognizeQRCodeFromSelection</string>
