@@ -5,7 +5,7 @@
 <h1 align="center">QRNative</h1>
 
 <p align="center">
-  Native macOS QR code generator, history manager, and recognizer.
+  A native macOS QR utility for generating, recognizing, and keeping local QR history.
 </p>
 
 <p align="center">
@@ -15,21 +15,16 @@
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue"></a>
 </p>
 
-QRNative is a privacy-friendly native macOS app for generating QR codes from text or clipboard content, keeping searchable local history, exporting crisp PNGs, and recognizing QR codes from images.
+QRNative turns text, clipboard content, selected text, screenshots, and image files into a fast local QR workflow. It is built with SwiftUI, AppKit, Core Image, Vision, and JSON persistence; normal use does not require network access.
 
-## Features
+## Core Functions
 
-- Generate QR codes from typed text.
-- Keep searchable local QR code history.
-- Generate QR codes from clipboard text with `Shift + Command + V`.
-- Use a configurable global clipboard shortcut when macOS allows registration; the default is `Control + Option + Command + Q`.
-- Show a floating QR code for selected text from any app; the default shortcut is `Option + T`.
-- Capture a screen region, recognize QR content, and copy the decoded text; the default shortcut is `Option + R`.
-- Use macOS Services from selected text or selected image content in other apps.
-- Recognize QR codes from image files, dragged images, or clipboard images.
-- Copy QR images, copy decoded text, open decoded URLs, and export PNG files.
-- Configure defaults from the native macOS Settings window.
-- Keep payloads local; no network access is needed for normal use.
+- Generate QR codes from typed text or clipboard text, with live preview and L/M/Q/H correction levels.
+- Copy QR images, copy payload text, open URL payloads, and export crisp PNG files.
+- Keep searchable local history, load previous entries, copy them, or delete them.
+- Recognize QR codes from image files, dragged images, clipboard images, selected images, and screen regions.
+- Handle multiple recognized QR codes in one image, then copy, open, or regenerate from the decoded payload.
+- Use app shortcuts, configurable global shortcuts, and macOS Services for selected text and selected image workflows.
 
 ## Requirements
 
@@ -37,7 +32,7 @@ QRNative is a privacy-friendly native macOS app for generating QR codes from tex
 - Xcode command line tools
 - Swift 6
 
-## Development
+## Run Locally
 
 ```bash
 swift build
@@ -45,7 +40,7 @@ swift test
 swift run QRNative
 ```
 
-Or use the convenience Makefile:
+Convenience targets are also available:
 
 ```bash
 make test
@@ -53,16 +48,55 @@ make app
 make release
 ```
 
-## Build a `.app` Bundle
+## Shortcuts
+
+| Action | Default |
+| --- | --- |
+| Generate typed content | `Command + Return` |
+| Generate from clipboard | `Shift + Command + V` |
+| Recognize clipboard image | `Shift + Command + R` |
+| Global clipboard QR | `Control + Option + Command + Q` |
+| Selected text floating QR | `Option + T` |
+| Screenshot QR recognition | `Option + R` |
+| Copy QR image | `Option + Command + C` |
+| Copy QR text | `Shift + Command + C` |
+| Save PNG | `Command + S` |
+| Focus input | `Command + L` |
+| Search history | `Command + F` |
+
+Global shortcut registration is best effort. If macOS blocks a global shortcut, the matching app menu command still works.
+
+## macOS Services
+
+QRNative includes two Services in the app bundle:
+
+- `QRNative: Generate QR from Selected Text`
+- `QRNative: Recognize QR in Selected Image`
+
+After installing and launching the app, enable them in:
+
+```text
+System Settings > Keyboard > Keyboard Shortcuts > Services
+```
+
+The `QRNative > Settings... > Selection` pane includes the same setup path and a button to open the relevant System Settings page.
+
+## Settings And Data
+
+Use `QRNative > Settings...` to configure default correction level, live preview, history saving policy, shortcut behavior, Services history, and local data management.
+
+History is stored as JSON at:
+
+```text
+~/Library/Application Support/QRNative/history.json
+```
+
+## App Bundle And DMG
 
 ```bash
 ./scripts/build-app.sh
 open .build/QRNative.app
 ```
-
-The app bundle includes the generated `Resources/QRNative.icns` icon.
-
-## Build a DMG Installer
 
 ```bash
 ./scripts/build-app.sh release
@@ -70,46 +104,16 @@ The app bundle includes the generated `Resources/QRNative.icns` icon.
 open .build/QRNative-macOS.dmg
 ```
 
-The DMG contains `QRNative.app` and an `/Applications` shortcut for drag-and-drop installation.
+The app bundle includes `Resources/QRNative.icns`. The DMG contains `QRNative.app` and an `/Applications` shortcut for drag-and-drop installation.
 
-## CI/CD
+## Project Layout
 
-- CI: `.github/workflows/ci.yml` runs build, tests, and app bundle creation for pushes and pull requests.
-- Release: `.github/workflows/release.yml` runs on `v*` tags, packages `.build/QRNative.app` as DMG and zip artifacts, generates SHA-256 checksums, and publishes them to GitHub Releases.
-- Release checklist: `docs/RELEASE.md`
-
-## Settings
-
-Open `QRNative > Settings...` to configure:
-
-- Default QR correction level.
-- Live preview while typing.
-- Whether typed, clipboard, and recognized QR codes are saved to history.
-- Global clipboard shortcut behavior.
-- Local history file management.
-
-## macOS Services
-
-QRNative registers two Services in the app bundle:
-
-- `QRNative: Generate QR from Selected Text`: use on selected text.
-- `QRNative: Recognize QR in Selected Image`: use on selected images or image files.
-
-After installing and launching the app, use them from another app's context menu:
-
-```text
-Right click selected text or image > Services > QRNative: ...
-```
-
-To add a keyboard shortcut:
-
-```text
-System Settings > Keyboard > Keyboard Shortcuts > Services
-```
-
-QRNative also includes a `Settings > Selection` page with these steps and an open button.
-
-The Services route is the macOS-native way to receive the current selection from other apps. QRNative also includes a configurable selected-text global shortcut that temporarily copies the current selection, restores the previous clipboard, and shows a floating QR code. macOS may ask for Accessibility permission before this shortcut can copy text from the frontmost app.
+- `Sources/QRNativeCore`: QR generation, recognition, clipboard, models, and history services.
+- `Sources/QRNative`: SwiftUI app, AppKit integration, settings, shortcuts, and Services.
+- `Tests/QRNativeCoreTests`: Swift Testing coverage for core behavior.
+- `Assets/Brand`: logo source and README image.
+- `Resources`: app metadata and icon.
+- `docs`: architecture, release, branding, and TODO notes.
 
 ## Brand Assets
 
@@ -118,40 +122,23 @@ The Services route is the macOS-native way to receive the current selection from
 - App icon: `Resources/QRNative.icns`
 - Brand guide: `docs/BRANDING.md`
 
-Regenerate derived brand assets:
+Regenerate derived brand assets with:
 
 ```bash
 ./scripts/generate-brand-assets.swift
 ```
 
-## Local Data
-
-History is stored as JSON in:
-
-```text
-~/Library/Application Support/QRNative/history.json
-```
-
-## Project Layout
-
-- `Sources/QRNativeCore`: models and services for generation, recognition, clipboard, and history.
-- `Sources/QRNative`: SwiftUI macOS application.
-- `Tests/QRNativeCoreTests`: unit tests for core behavior.
-- `docs`: task list, architecture notes, and branding notes.
-- `.github`: CI workflow and contribution templates.
-- `Makefile`: local shortcuts for common development and release commands.
-
 ## Contributing
 
-Contributions are welcome. See `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, and `SECURITY.md`.
-
-Before opening a pull request, run:
+Contributions are welcome. Before opening a pull request, run:
 
 ```bash
 swift test
 swift build
 ./scripts/build-app.sh
 ```
+
+See `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, and `docs/RELEASE.md` for project process notes.
 
 ## License
 

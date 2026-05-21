@@ -584,12 +584,16 @@ final class AppState: ObservableObject {
 
             if provider.canLoadObject(ofClass: NSImage.self) {
                 provider.loadObject(ofClass: NSImage.self) { [weak self] image, _ in
-                    guard let image = image as? NSImage else {
+                    guard let image = image as? NSImage,
+                          let imageData = image.tiffRepresentation else {
                         return
                     }
 
                     Task { @MainActor in
-                        self?.recognize(image: image, sourceName: "dropped image")
+                        guard let restoredImage = NSImage(data: imageData) else {
+                            return
+                        }
+                        self?.recognize(image: restoredImage, sourceName: "dropped image")
                     }
                 }
                 return true
