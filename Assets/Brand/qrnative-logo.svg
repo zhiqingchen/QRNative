@@ -1,0 +1,32 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">QRNative logo</title>
+  <desc id="desc">A minimal abstract QR-inspired mark with three quiet finder nodes and a single scan line.</desc>
+  <defs>
+    <linearGradient id="background" x1="164" y1="128" x2="860" y2="896" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0B1020"/>
+      <stop offset="0.58" stop-color="#111C32"/>
+      <stop offset="1" stop-color="#1A2D52"/>
+    </linearGradient>
+    <linearGradient id="line" x1="336" y1="688" x2="688" y2="336" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#30E7C2" stop-opacity="0.08"/>
+      <stop offset="0.5" stop-color="#EAFDF8"/>
+      <stop offset="1" stop-color="#8EA2FF" stop-opacity="0.14"/>
+    </linearGradient>
+    <linearGradient id="node" x1="284" y1="284" x2="740" y2="740" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#CFE0FF"/>
+    </linearGradient>
+    <filter id="shadow" x="128" y="128" width="768" height="768" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="28" stdDeviation="34" flood-color="#020617" flood-opacity="0.36"/>
+    </filter>
+  </defs>
+
+  <rect x="128" y="128" width="768" height="768" rx="192" fill="url(#background)" filter="url(#shadow)"/>
+  <path d="M336 688L688 336" stroke="url(#line)" stroke-width="34" stroke-linecap="round"/>
+
+  <g stroke="url(#node)" stroke-width="38" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="300" y="300" width="150" height="150" rx="46"/>
+    <rect x="574" y="300" width="150" height="150" rx="46"/>
+    <rect x="300" y="574" width="150" height="150" rx="46"/>
+  </g>
+</svg>

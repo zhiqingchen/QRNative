@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build release artifact
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Test
+        run: swift test
+
+      - name: Generate brand assets
+        run: ./scripts/generate-brand-assets.swift
+
+      - name: Build app bundle
+        run: ./scripts/build-app.sh release
+
+      - name: Package app
+        run: |
+          ditto -c -k --keepParent .build/QRNative.app .build/QRNative-macOS.zip
+          shasum -a 256 .build/QRNative-macOS.zip > .build/QRNative-macOS.zip.sha256
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QRNative-macOS
+          path: |
+            .build/QRNative-macOS.zip
+            .build/QRNative-macOS.zip.sha256
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            .build/QRNative-macOS.zip
+            .build/QRNative-macOS.zip.sha256
+
