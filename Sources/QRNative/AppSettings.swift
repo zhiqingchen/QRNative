@@ -9,6 +9,7 @@ final class AppSettings: ObservableObject {
         static let saveTypedToHistory = "saveTypedToHistory"
         static let saveClipboardToHistory = "saveClipboardToHistory"
         static let saveRecognizedToHistory = "saveRecognizedToHistory"
+        static let saveServicesToHistory = "saveServicesToHistory"
         static let bringToFrontAfterClipboard = "bringToFrontAfterClipboard"
         static let globalShortcutEnabled = "globalShortcutEnabled"
     }
@@ -35,6 +36,10 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(saveRecognizedToHistory, forKey: Key.saveRecognizedToHistory) }
     }
 
+    @Published var saveServicesToHistory: Bool {
+        didSet { defaults.set(saveServicesToHistory, forKey: Key.saveServicesToHistory) }
+    }
+
     @Published var bringToFrontAfterClipboard: Bool {
         didSet { defaults.set(bringToFrontAfterClipboard, forKey: Key.bringToFrontAfterClipboard) }
     }
@@ -52,6 +57,7 @@ final class AppSettings: ObservableObject {
         self.saveTypedToHistory = defaults.object(forKey: Key.saveTypedToHistory) as? Bool ?? true
         self.saveClipboardToHistory = defaults.object(forKey: Key.saveClipboardToHistory) as? Bool ?? true
         self.saveRecognizedToHistory = defaults.object(forKey: Key.saveRecognizedToHistory) as? Bool ?? true
+        self.saveServicesToHistory = defaults.object(forKey: Key.saveServicesToHistory) as? Bool ?? true
         self.bringToFrontAfterClipboard = defaults.object(forKey: Key.bringToFrontAfterClipboard) as? Bool ?? true
         self.globalShortcutEnabled = defaults.object(forKey: Key.globalShortcutEnabled) as? Bool ?? true
     }
@@ -62,8 +68,8 @@ final class AppSettings: ObservableObject {
         saveTypedToHistory = true
         saveClipboardToHistory = true
         saveRecognizedToHistory = true
+        saveServicesToHistory = true
         bringToFrontAfterClipboard = true
         globalShortcutEnabled = true
     }
 }
-

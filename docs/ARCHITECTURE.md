@@ -30,6 +30,7 @@ The app uses a split layout:
 - Menus: generation, clipboard, recognition, copy, save, delete, and clear commands are exposed for keyboard-driven use.
 - Preview generation is debounced while typing and does not write history until the user explicitly saves/generates.
 - Settings scene: native macOS Settings window for defaults, shortcuts, local data, and about information.
+- Services: app bundle declares macOS Services for selected text and selected image input; service handlers show a floating result panel near the pointer.
 
 ## Data Policy
 
@@ -46,6 +47,16 @@ Settings currently control:
 - History saving policy for typed, clipboard, and recognized payloads.
 - Whether the global clipboard shortcut is registered.
 - Whether clipboard generation brings QRNative to the front.
+- Whether QR codes generated through Services are saved to history.
+
+## Services
+
+`Resources/Info.plist` declares `NSServices` entries:
+
+- `Generate QR Code with QRNative` accepts selected text and calls `generateQRCodeFromSelection:userData:error:`.
+- `Recognize QR Code with QRNative` accepts selected image/file input and calls `recognizeQRCodeFromSelection:userData:error:`.
+
+`QRNativeServicesProvider` is installed as `NSApp.servicesProvider` during app startup. Service results are presented with `FloatingResultPresenter`, which positions an `NSPanel` close to the current pointer while also updating the main app state.
 
 ## Packaging
 

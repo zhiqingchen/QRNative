@@ -53,6 +53,7 @@ private struct GeneralSettingsPane: View {
             Toggle("Save typed QR codes to history", isOn: $settings.saveTypedToHistory)
             Toggle("Save clipboard QR codes to history", isOn: $settings.saveClipboardToHistory)
             Toggle("Save recognized QR codes to history", isOn: $settings.saveRecognizedToHistory)
+            Toggle("Save Services QR codes to history", isOn: $settings.saveServicesToHistory)
 
             HStack {
                 Spacer()
@@ -85,6 +86,17 @@ private struct ShortcutSettingsPane: View {
             ShortcutRow(title: "Save PNG", shortcut: "⌘S")
             ShortcutRow(title: "Focus input", shortcut: "⌘L")
             ShortcutRow(title: "Focus history search", shortcut: "⌘F")
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Services")
+                    .font(.headline)
+                Text("Use selected text or selected images from other apps through Right Click > Services > QRNative.")
+                Text("Configure service shortcuts in System Settings > Keyboard > Keyboard Shortcuts > Services.")
+            }
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .formStyle(.grouped)
         .padding(20)

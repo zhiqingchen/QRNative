@@ -37,6 +37,7 @@
 ## 3. Clipboard Shortcut
 
 - [x] Register a global keyboard shortcut for generating from clipboard content.
+- [x] Add macOS Service for selected text to QR generation.
 - [x] Read plain text from `NSPasteboard.general`.
 - [x] Show generated QR code in the main window.
 - [x] Add menu bar command for "Generate from Clipboard".
@@ -49,6 +50,7 @@
 - [x] Recognize QR codes from imported image files using Vision or Core Image detectors.
 - [x] Add drag-and-drop image support.
 - [x] Add paste-image-from-clipboard recognition.
+- [x] Add macOS Service for selected image QR recognition.
 - [ ] Add screen capture or selected-region recognition flow.
 - [x] Display decoded content with copy, open URL, and save-to-history actions.
 - [x] Support multiple QR codes detected in one image.

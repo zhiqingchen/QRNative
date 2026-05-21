@@ -38,6 +38,7 @@ public enum QRCorrectionLevel: String, CaseIterable, Codable, Identifiable, Send
 public enum QRRecordSource: String, Codable, CaseIterable, Identifiable, Sendable {
     case typed
     case clipboard
+    case service
     case recognized
     case imported
 
@@ -49,6 +50,8 @@ public enum QRRecordSource: String, Codable, CaseIterable, Identifiable, Sendabl
             return "Typed"
         case .clipboard:
             return "Clipboard"
+        case .service:
+            return "Service"
         case .recognized:
             return "Recognized"
         case .imported:
@@ -106,4 +109,3 @@ public struct RecognizedQRCode: Identifiable, Equatable, Sendable {
         self.confidence = confidence
     }
 }
-

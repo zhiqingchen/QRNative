@@ -24,7 +24,9 @@ final class AppState: ObservableObject {
     private let generator = QRCodeGenerator()
     private let recognizer = QRRecognizer()
     private let clipboard = ClipboardService()
+    private let floatingPresenter = FloatingResultPresenter()
     private var hotKeyManager: GlobalHotKeyManager?
+    private var servicesProvider: QRNativeServicesProvider?
     private var cancellables = Set<AnyCancellable>()
     private var previewTask: Task<Void, Never>?
 
@@ -100,6 +102,7 @@ final class AppState: ObservableObject {
             .store(in: &cancellables)
 
         updateGlobalHotKeyRegistration()
+        installServicesProvider()
     }
 
     func generateTyped() {
@@ -129,6 +132,25 @@ final class AppState: ObservableObject {
                 let record = try historyStore.add(content: content, source: source, correctionLevel: correctionLevel)
                 selectedRecordID = record.id
             }
+        } catch {
+            showAlert(error.localizedDescription)
+        }
+    }
+
+    func generateFromServiceText(_ content: String) {
+        do {
+            correctionLevel = settings.defaultCorrectionLevel
+            let image = try generator.nsImage(for: content, correctionLevel: correctionLevel, sideLength: 900)
+            inputText = content
+            generatedImage = image
+            statusMessage = "Generated service QR code"
+
+            if settings.saveServicesToHistory {
+                let record = try historyStore.add(content: content, source: .service, correctionLevel: correctionLevel)
+                selectedRecordID = record.id
+            }
+
+            floatingPresenter.showQRCode(image: image, content: content)
         } catch {
             showAlert(error.localizedDescription)
         }
@@ -367,6 +389,17 @@ final class AppState: ObservableObject {
         }
     }
 
+    func recognizeFromServiceImage(_ image: NSImage) {
+        do {
+            selectedRecognitionImage = image
+            recognizedResults = try recognizer.recognize(in: image)
+            statusMessage = recognizedResults.isEmpty ? "No QR code found in service image" : "Recognized \(recognizedResults.count) service QR code(s)"
+            floatingPresenter.showRecognition(results: recognizedResults)
+        } catch {
+            showAlert(error.localizedDescription)
+        }
+    }
+
     func useRecognizedPayload(_ payload: String) {
         inputText = payload
         generate(content: payload, source: .recognized, saveToHistory: settings.saveRecognizedToHistory)
@@ -460,6 +493,13 @@ final class AppState: ObservableObject {
         } else {
             hotKeyStatus = "Global shortcut unavailable; app shortcut: ⇧⌘V"
         }
+    }
+
+    private func installServicesProvider() {
+        let provider = QRNativeServicesProvider(appState: self)
+        servicesProvider = provider
+        NSApp.servicesProvider = provider
+        NSUpdateDynamicServices()
     }
 
     private func defaultExportName(for content: String) -> String {
