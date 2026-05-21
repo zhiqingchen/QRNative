@@ -31,6 +31,10 @@ public final class QRHistoryStore: ObservableObject {
         try load()
     }
 
+    public var storageURL: URL {
+        fileURL
+    }
+
     public static func defaultFileURL() throws -> URL {
         guard let supportURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
             throw QRHistoryStoreError.applicationSupportUnavailable

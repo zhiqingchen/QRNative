@@ -19,6 +19,7 @@ final class AppState: ObservableObject {
     @Published var focusRequest: FocusRequest?
 
     let historyStore: QRHistoryStore
+    let settings: AppSettings
 
     private let generator = QRCodeGenerator()
     private let recognizer = QRRecognizer()
@@ -60,7 +61,10 @@ final class AppState: ObservableObject {
         return url.scheme == "http" || url.scheme == "https"
     }
 
-    init() {
+    init(settings: AppSettings = AppSettings()) {
+        self.settings = settings
+        self.correctionLevel = settings.defaultCorrectionLevel
+
         do {
             historyStore = try QRHistoryStore()
         } catch {
@@ -77,11 +81,29 @@ final class AppState: ObservableObject {
             }
             .store(in: &cancellables)
 
-        installGlobalHotKey()
+        settings.$globalShortcutEnabled
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.updateGlobalHotKeyRegistration()
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        settings.$automaticPreview
+            .dropFirst()
+            .sink { [weak self] enabled in
+                if enabled {
+                    self?.schedulePreviewRefresh()
+                }
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        updateGlobalHotKeyRegistration()
     }
 
     func generateTyped() {
-        generate(content: inputText, source: .typed, saveToHistory: true)
+        generate(content: inputText, source: .typed, saveToHistory: settings.saveTypedToHistory)
     }
 
     func generateFromClipboard() {
@@ -91,8 +113,11 @@ final class AppState: ObservableObject {
         }
 
         inputText = content
-        generate(content: content, source: .clipboard, saveToHistory: true)
-        NSApp.activate(ignoringOtherApps: true)
+        generate(content: content, source: .clipboard, saveToHistory: settings.saveClipboardToHistory)
+
+        if settings.bringToFrontAfterClipboard {
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 
     func generate(content: String, source: QRRecordSource, saveToHistory: Bool) {
@@ -219,6 +244,10 @@ final class AppState: ObservableObject {
     func schedulePreviewRefresh() {
         previewTask?.cancel()
 
+        guard settings.automaticPreview else {
+            return
+        }
+
         guard canGenerate else {
             generatedImage = nil
             statusMessage = "Ready"
@@ -260,6 +289,35 @@ final class AppState: ObservableObject {
         generatedImage = nil
         selectedRecordID = nil
         statusMessage = "Cleared"
+    }
+
+    func deleteAllHistory() {
+        do {
+            try historyStore.deleteAll()
+            selectedRecordID = nil
+            statusMessage = "Cleared history"
+        } catch {
+            showAlert(error.localizedDescription)
+        }
+    }
+
+    var historyFileURL: URL {
+        historyStore.storageURL
+    }
+
+    func revealHistoryFile() {
+        let url = historyFileURL
+        if FileManager.default.fileExists(atPath: url.path) {
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+        } else {
+            openApplicationSupportFolder()
+        }
+    }
+
+    func openApplicationSupportFolder() {
+        let folder = historyFileURL.deletingLastPathComponent()
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        NSWorkspace.shared.open(folder)
     }
 
     func importRecognitionImage() {
@@ -311,7 +369,7 @@ final class AppState: ObservableObject {
 
     func useRecognizedPayload(_ payload: String) {
         inputText = payload
-        generate(content: payload, source: .recognized, saveToHistory: true)
+        generate(content: payload, source: .recognized, saveToHistory: settings.saveRecognizedToHistory)
     }
 
     func copyRecognizedPayload(_ payload: String) {
@@ -373,7 +431,25 @@ final class AppState: ObservableObject {
         return false
     }
 
-    private func installGlobalHotKey() {
+    func applyDefaultCorrectionLevel() {
+        correctionLevel = settings.defaultCorrectionLevel
+        refreshPreviewForCurrentInput()
+        statusMessage = "Applied default correction"
+    }
+
+    private func updateGlobalHotKeyRegistration() {
+        guard settings.globalShortcutEnabled else {
+            hotKeyManager?.unregister()
+            hotKeyManager = nil
+            hotKeyStatus = "Global shortcut off"
+            return
+        }
+
+        guard hotKeyManager == nil else {
+            hotKeyStatus = "Global shortcut: ^⌥⌘Q"
+            return
+        }
+
         let manager = GlobalHotKeyManager { [weak self] in
             self?.generateFromClipboard()
         }

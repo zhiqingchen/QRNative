@@ -2,12 +2,20 @@ import SwiftUI
 
 @main
 struct QRNativeApp: App {
-    @StateObject private var appState = AppState()
+    @StateObject private var settings: AppSettings
+    @StateObject private var appState: AppState
+
+    init() {
+        let settings = AppSettings()
+        _settings = StateObject(wrappedValue: settings)
+        _appState = StateObject(wrappedValue: AppState(settings: settings))
+    }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
+                .environmentObject(settings)
                 .frame(minWidth: 980, minHeight: 640)
         }
         .defaultSize(width: 980, height: 692)
@@ -78,6 +86,12 @@ struct QRNativeApp: App {
                 .keyboardShortcut("k", modifiers: [.command])
                 .disabled(appState.inputText.isEmpty && appState.generatedImage == nil)
             }
+        }
+
+        Settings {
+            SettingsView()
+                .environmentObject(appState)
+                .environmentObject(settings)
         }
     }
 }

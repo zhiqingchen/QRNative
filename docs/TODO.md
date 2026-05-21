@@ -58,10 +58,11 @@
 
 - [x] Split UI into views: generator, history, recognition.
 - [x] Add services: QR generation, QR recognition, clipboard access, persistence, shortcut handling.
-- [ ] Add preferences view and app settings storage with `@AppStorage` or a dedicated preferences model.
+- [x] Add preferences view and app settings storage with a dedicated preferences model.
 - [x] Add menu commands for common actions.
 - [x] Add keyboard shortcuts for generate, copy image, copy text, save image, delete selected history, and clear input.
 - [x] Add keyboard shortcuts for focus input and open history search.
+- [x] Add native macOS Settings window.
 
 ## 6. Testing and Quality
 

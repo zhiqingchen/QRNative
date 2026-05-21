@@ -29,10 +29,23 @@ The app uses a split layout:
 - Recognize tab: image import, paste, drag-and-drop, decoded payload actions.
 - Menus: generation, clipboard, recognition, copy, save, delete, and clear commands are exposed for keyboard-driven use.
 - Preview generation is debounced while typing and does not write history until the user explicitly saves/generates.
+- Settings scene: native macOS Settings window for defaults, shortcuts, local data, and about information.
 
 ## Data Policy
 
 History stays local on disk. The app does not use network access and does not send payloads anywhere.
+
+## Settings
+
+`AppSettings` stores user preferences in `UserDefaults` and is injected alongside `AppState`.
+
+Settings currently control:
+
+- Default QR correction level.
+- Automatic preview refresh.
+- History saving policy for typed, clipboard, and recognized payloads.
+- Whether the global clipboard shortcut is registered.
+- Whether clipboard generation brings QRNative to the front.
 
 ## Packaging
 

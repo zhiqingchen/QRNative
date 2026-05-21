@@ -25,6 +25,7 @@ QRNative is a privacy-friendly native macOS app for generating QR codes from tex
 - Use the global shortcut `Control + Option + Command + Q` when macOS allows registration.
 - Recognize QR codes from image files, dragged images, or clipboard images.
 - Copy QR images, copy decoded text, open decoded URLs, and export PNG files.
+- Configure defaults from the native macOS Settings window.
 - Keep payloads local; no network access is needed for normal use.
 
 ## Requirements
@@ -63,6 +64,16 @@ The app bundle includes the generated `Resources/QRNative.icns` icon.
 - CI: `.github/workflows/ci.yml` runs build, tests, and app bundle creation for pushes and pull requests.
 - Release: `.github/workflows/release.yml` runs on `v*` tags, packages `.build/QRNative.app` as a zip, generates a SHA-256 checksum, and publishes both to GitHub Releases.
 - Release checklist: `docs/RELEASE.md`
+
+## Settings
+
+Open `QRNative > Settings...` to configure:
+
+- Default QR correction level.
+- Live preview while typing.
+- Whether typed, clipboard, and recognized QR codes are saved to history.
+- Global clipboard shortcut behavior.
+- Local history file management.
 
 ## Brand Assets
 
