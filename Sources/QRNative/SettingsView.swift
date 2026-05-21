@@ -123,6 +123,8 @@ private struct ShortcutSettingsPane: View {
             ShortcutRow(title: "Copy QR image", shortcut: "⌥⌘C")
             ShortcutRow(title: "Copy QR text", shortcut: "⇧⌘C")
             ShortcutRow(title: "Save PNG", shortcut: "⌘S")
+            ShortcutRow(title: "Delete selected history item", shortcut: "Delete")
+            ShortcutRow(title: "Clear input", shortcut: "⌘K")
             ShortcutRow(title: "Focus input", shortcut: "⌘L")
             ShortcutRow(title: "Focus history search", shortcut: "⌘F")
         }

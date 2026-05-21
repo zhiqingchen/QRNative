@@ -61,10 +61,12 @@ make release
 | Copy QR image | `Option + Command + C` |
 | Copy QR text | `Shift + Command + C` |
 | Save PNG | `Command + S` |
+| Delete selected history item | `Delete` |
+| Clear input | `Command + K` |
 | Focus input | `Command + L` |
 | Search history | `Command + F` |
 
-Global shortcut registration is best effort. If macOS blocks a global shortcut, the matching app menu command still works.
+Global shortcut registration is best effort. If macOS blocks clipboard registration, the app menu shortcut still works. Selected text can also use the macOS Service flow.
 
 ## macOS Services
 

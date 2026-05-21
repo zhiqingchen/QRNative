@@ -24,7 +24,7 @@
 
 ## 2. QR History
 
-- [x] Define `QRCodeRecord` model with id, content, created date, source, preview image metadata, and optional title.
+- [x] Define `QRCodeRecord` model with id, content, created date, source, optional title, and correction level.
 - [x] Choose persistence approach: SwiftData, Core Data, or local JSON/SQLite.
 - [x] Save generated QR records automatically or through an explicit toggle.
 - [x] Build history sidebar/list.
@@ -53,7 +53,7 @@
 - [x] Add paste-image-from-clipboard recognition.
 - [x] Add macOS Service for selected image QR recognition.
 - [x] Add screen capture or selected-region recognition flow.
-- [x] Display decoded content with copy, open URL, and save-to-history actions.
+- [x] Display decoded content with copy, open URL, and generate-from-result actions.
 - [x] Support multiple QR codes detected in one image.
 - [x] Add clear error states for no code found, unreadable image, and unsupported file format.
 

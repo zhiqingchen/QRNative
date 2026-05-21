@@ -20,7 +20,8 @@ Use `QRNative` as the product and repository name.
 
 ## Usage
 
-- Prefer the SVG in README and web contexts.
+- Use the generated PNG in the README so GitHub renders it consistently.
+- Use the SVG as the editable source for brand and web contexts that need vector output.
 - Prefer the `.icns` file for app bundles.
 - Keep clear space around the mark equal to at least 12% of the logo width.
 - Do not place the logo on busy backgrounds.
