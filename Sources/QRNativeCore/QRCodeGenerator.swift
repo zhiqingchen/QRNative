@@ -37,7 +37,7 @@ public struct QRCodeGenerator: Sendable {
         }
 
         let filter = CIFilter.qrCodeGenerator()
-        filter.message = Data(content.utf8)
+        filter.message = Data(trimmed.utf8)
         filter.correctionLevel = correctionLevel.rawValue
 
         guard let image = filter.outputImage else {

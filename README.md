@@ -22,7 +22,9 @@ QRNative is a privacy-friendly native macOS app for generating QR codes from tex
 - Generate QR codes from typed text.
 - Keep searchable local QR code history.
 - Generate QR codes from clipboard text with `Shift + Command + V`.
-- Use the global shortcut `Control + Option + Command + Q` when macOS allows registration.
+- Use a configurable global clipboard shortcut when macOS allows registration; the default is `Control + Option + Command + Q`.
+- Show a floating QR code for selected text from any app; the default shortcut is `Option + T`.
+- Capture a screen region, recognize QR content, and copy the decoded text; the default shortcut is `Option + R`.
 - Use macOS Services from selected text or selected image content in other apps.
 - Recognize QR codes from image files, dragged images, or clipboard images.
 - Copy QR images, copy decoded text, open decoded URLs, and export PNG files.
@@ -107,7 +109,7 @@ System Settings > Keyboard > Keyboard Shortcuts > Services
 
 QRNative also includes a `Settings > Selection` page with these steps and an open button.
 
-The Services route is the macOS-native way to receive the current selection from other apps. The existing global shortcut still works from clipboard content.
+The Services route is the macOS-native way to receive the current selection from other apps. QRNative also includes a configurable selected-text global shortcut that temporarily copies the current selection, restores the previous clipboard, and shows a floating QR code. macOS may ask for Accessibility permission before this shortcut can copy text from the frontmost app.
 
 ## Brand Assets
 

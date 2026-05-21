@@ -8,7 +8,7 @@ final class FloatingResultPresenter {
 
     func showQRCode(image: NSImage, content: String) {
         let view = FloatingQRCodeView(image: image, content: content)
-        show(rootView: view, size: NSSize(width: 320, height: 410))
+        show(rootView: view, size: NSSize(width: 380, height: 500))
     }
 
     func showRecognition(results: [RecognizedQRCode]) {
@@ -21,19 +21,24 @@ final class FloatingResultPresenter {
 
         let panel = NSPanel(
             contentRect: NSRect(origin: .zero, size: size),
-            styleMask: [.titled, .closable, .utilityWindow, .fullSizeContentView],
+            styleMask: [.titled, .closable, .utilityWindow, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
         panel.title = "QRNative"
         panel.titleVisibility = .hidden
         panel.titlebarAppearsTransparent = true
+        panel.backgroundColor = .clear
+        panel.isOpaque = false
+        panel.hasShadow = true
         panel.isReleasedWhenClosed = false
         panel.level = .floating
+        panel.hidesOnDeactivate = false
+        panel.becomesKeyOnlyIfNeeded = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.contentView = NSHostingView(rootView: rootView)
         panel.setFrameOrigin(origin(for: size))
-        panel.makeKeyAndOrderFront(nil)
+        panel.orderFrontRegardless()
 
         self.panel = panel
     }
@@ -65,37 +70,81 @@ private struct FloatingQRCodeView: View {
     let content: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Label("QR Code", systemImage: "qrcode")
-                    .font(.headline)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 10) {
+                Image(systemName: "qrcode")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 28, height: 28)
+                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("QR Code")
+                        .font(.headline)
+                    Text("Ready to share")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Spacer()
             }
 
-            Image(nsImage: image)
-                .interpolation(.none)
-                .resizable()
-                .scaledToFit()
-                .padding(14)
-                .background(.background, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(.separator)
+            ZStack {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color(nsColor: .windowBackgroundColor).opacity(0.62))
+
+                Image(nsImage: image)
+                    .interpolation(.none)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(18)
+                    .frame(width: 272, height: 272)
+                    .background(.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(.black.opacity(0.08), lineWidth: 1)
+                    }
+                    .shadow(color: .black.opacity(0.14), radius: 18, y: 8)
+            }
+            .frame(maxWidth: .infinity, minHeight: 304)
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(.white.opacity(0.10), lineWidth: 1)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Content")
+                        .fontWeight(.semibold)
+                    Spacer()
+                    Text("\(content.count) chars")
+                        .foregroundStyle(.tertiary)
                 }
+                .font(.caption)
 
-            Text(content)
-                .font(.system(.caption, design: .monospaced))
-                .lineLimit(3)
-                .truncationMode(.middle)
-                .textSelection(.enabled)
+                Text(content)
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(4)
+                    .truncationMode(.middle)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(12)
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.70), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(.separator.opacity(0.65), lineWidth: 1)
+            }
 
-            HStack {
+            HStack(spacing: 8) {
                 Button {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.writeObjects([image])
                 } label: {
                     Label("Copy Image", systemImage: "doc.on.doc")
                 }
+                .buttonStyle(.borderedProminent)
 
                 Button {
                     NSPasteboard.general.clearContents()
@@ -104,8 +153,12 @@ private struct FloatingQRCodeView: View {
                     Label("Copy Text", systemImage: "text.badge.checkmark")
                 }
             }
+            .controlSize(.large)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(16)
+        .padding(18)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.regularMaterial)
     }
 }
 
@@ -114,8 +167,18 @@ private struct FloatingRecognitionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Recognized QR Code", systemImage: "viewfinder")
-                .font(.headline)
+            HStack(spacing: 10) {
+                Image(systemName: "viewfinder")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 28, height: 28)
+                    .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+
+                Text("Recognized QR Code")
+                    .font(.headline)
+
+                Spacer()
+            }
 
             if results.isEmpty {
                 ContentUnavailableView(
@@ -159,13 +222,18 @@ private struct FloatingRecognitionView: View {
                                 .font(.caption)
                             }
                             .padding(10)
-                            .background(.quaternary, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            .background(Color(nsColor: .controlBackgroundColor).opacity(0.70), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .stroke(.separator.opacity(0.65), lineWidth: 1)
+                            }
                         }
                     }
                 }
             }
         }
         .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(.regularMaterial)
     }
 }
-

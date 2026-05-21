@@ -21,6 +21,18 @@ struct QRNativeCoreTests {
         #expect(recognized.map(\.payload).contains(expected))
     }
 
+    @Test("Generator trims content before encoding")
+    func generatorTrimsContentBeforeEncoding() throws {
+        let generator = QRCodeGenerator()
+        let recognizer = QRRecognizer()
+
+        let padded = try recognizer.recognize(in: generator.nsImage(for: "  trimmed payload  "))
+        let exact = try recognizer.recognize(in: generator.nsImage(for: "trimmed payload"))
+
+        #expect(padded.map(\.payload).contains("trimmed payload"))
+        #expect(padded.map(\.payload) == exact.map(\.payload))
+    }
+
     @MainActor
     @Test("History search finds content and source")
     func historySearchFindsContentAndSource() throws {

@@ -88,6 +88,12 @@ struct QRNativeApp: App {
             }
         }
 
+        MenuBarExtra("QRNative", systemImage: "qrcode") {
+            MenuBarHistoryView()
+                .environmentObject(appState)
+                .environmentObject(settings)
+        }
+
         Settings {
             SettingsView()
                 .environmentObject(appState)

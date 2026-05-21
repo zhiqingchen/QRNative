@@ -23,4 +23,17 @@ fi
 chmod +x "$APP_DIR/Contents/MacOS/QRNative"
 touch "$APP_DIR"
 
+# Code sign with a stable identity so macOS keeps Accessibility (and other TCC)
+# grants across rebuilds. Defaults to the local self-signed cert; override with
+# CODESIGN_IDENTITY (e.g. an "Apple Development: ..." identity) if you prefer.
+CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-QRNative Local Codesign}"
+if security find-certificate -c "$CODESIGN_IDENTITY" >/dev/null 2>&1 || [[ "$CODESIGN_IDENTITY" == "-" ]]; then
+  codesign --force --sign "$CODESIGN_IDENTITY" \
+    --identifier "dev.local.QRNative" \
+    "$APP_DIR" >&2
+  echo "Signed with: $CODESIGN_IDENTITY" >&2
+else
+  echo "WARNING: signing identity '$CODESIGN_IDENTITY' not found; app left unsigned." >&2
+fi
+
 echo "$APP_DIR"

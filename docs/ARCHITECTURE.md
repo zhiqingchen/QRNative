@@ -18,7 +18,9 @@ QRNative is split into a testable core target and a macOS app target.
 - `QRRecognizer`: uses Vision barcode detection with QR symbology.
 - `QRHistoryStore`: stores history as JSON under Application Support.
 - `ClipboardService`: reads text/images and writes text/images through `NSPasteboard`.
-- `GlobalHotKeyManager`: registers `Control + Option + Command + Q` as a best-effort global shortcut.
+- `GlobalHotKeyManager`: registers user-configurable clipboard, selected-text, and screenshot-recognition shortcuts as best-effort global shortcuts.
+- `SelectedTextService`: reads selected text from the frontmost app by issuing a copy command, then restores the previous pasteboard contents.
+- `ScreenshotCaptureService`: invokes the system interactive screenshot tool and returns captured PNG data for Vision recognition.
 
 ## UI
 
@@ -46,6 +48,8 @@ Settings currently control:
 - Automatic preview refresh.
 - History saving policy for typed, clipboard, and recognized payloads.
 - Whether the global clipboard shortcut is registered.
+- Whether the selected-text shortcut is registered.
+- Whether the screenshot recognition shortcut is registered.
 - Whether clipboard generation brings QRNative to the front.
 - Whether QR codes generated through Services are saved to history.
 
@@ -57,6 +61,10 @@ Settings currently control:
 - `QRNative: Recognize QR in Selected Image` accepts selected image/file input and calls `recognizeQRCodeFromSelection:userData:error:`.
 
 `QRNativeServicesProvider` is installed as `NSApp.servicesProvider` during app startup. Service results are presented with `FloatingResultPresenter`, which positions an `NSPanel` close to the current pointer while also updating the main app state.
+
+The selected-text global shortcut reuses the same floating QR presentation path. Because macOS does not expose arbitrary selected text to background apps, this path uses a temporary copy operation and may require Accessibility permission.
+
+The screenshot recognition shortcut opens the system region capture UI, sends the resulting image through `QRRecognizer`, presents decoded content with `FloatingResultPresenter`, and copies the first decoded payload to the pasteboard.
 
 ## Packaging
 

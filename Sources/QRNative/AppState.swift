@@ -15,7 +15,7 @@ final class AppState: ObservableObject {
     @Published var selectedRecognitionImage: NSImage?
     @Published var statusMessage: String = "Ready"
     @Published var alertMessage: String?
-    @Published var hotKeyStatus: String = "Global shortcut: registering..."
+    @Published var hotKeyStatus: String = "Global shortcuts: registering..."
     @Published var focusRequest: FocusRequest?
 
     let historyStore: QRHistoryStore
@@ -24,11 +24,18 @@ final class AppState: ObservableObject {
     private let generator = QRCodeGenerator()
     private let recognizer = QRRecognizer()
     private let clipboard = ClipboardService()
+    private let selectedTextService = SelectedTextService()
+    private let screenshotCaptureService = ScreenshotCaptureService()
     private let floatingPresenter = FloatingResultPresenter()
     private var hotKeyManager: GlobalHotKeyManager?
+    private var selectionHotKeyManager: GlobalHotKeyManager?
+    private var screenshotHotKeyManager: GlobalHotKeyManager?
     private var servicesProvider: QRNativeServicesProvider?
     private var cancellables = Set<AnyCancellable>()
     private var previewTask: Task<Void, Never>?
+    private var clipboardHotKeyStatus = "Clipboard: registering..."
+    private var selectionHotKeyStatus = "Selection: registering..."
+    private var screenshotHotKeyStatus = "Screenshot: registering..."
 
     enum FocusRequest: Equatable {
         case input
@@ -91,6 +98,46 @@ final class AppState: ObservableObject {
             }
             .store(in: &cancellables)
 
+        settings.$globalShortcut
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.updateGlobalHotKeyRegistration()
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        settings.$selectionShortcutEnabled
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.updateSelectionHotKeyRegistration()
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        settings.$selectionShortcut
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.updateSelectionHotKeyRegistration()
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        settings.$screenshotShortcutEnabled
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.updateScreenshotHotKeyRegistration()
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
+        settings.$screenshotShortcut
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.updateScreenshotHotKeyRegistration()
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+
         settings.$automaticPreview
             .dropFirst()
             .sink { [weak self] enabled in
@@ -102,6 +149,8 @@ final class AppState: ObservableObject {
             .store(in: &cancellables)
 
         updateGlobalHotKeyRegistration()
+        updateSelectionHotKeyRegistration()
+        updateScreenshotHotKeyRegistration()
         installServicesProvider()
     }
 
@@ -117,6 +166,10 @@ final class AppState: ObservableObject {
 
         inputText = content
         generate(content: content, source: .clipboard, saveToHistory: settings.saveClipboardToHistory)
+
+        if let generatedImage {
+            floatingPresenter.showQRCode(image: generatedImage, content: content)
+        }
 
         if settings.bringToFrontAfterClipboard {
             NSApp.activate(ignoringOtherApps: true)
@@ -153,6 +206,71 @@ final class AppState: ObservableObject {
             floatingPresenter.showQRCode(image: image, content: content)
         } catch {
             showAlert(error.localizedDescription)
+        }
+    }
+
+    func generateFloatingQRCodeFromSelectedText() {
+        guard selectedTextService.isAccessibilityTrusted else {
+            selectedTextService.requestAccessibilityTrust()
+            selectedTextService.openAccessibilitySettings()
+            statusMessage = "Enable QRNative in Privacy & Security > Accessibility, then try the shortcut again."
+            return
+        }
+
+        Task { [weak self] in
+            guard let self else {
+                return
+            }
+
+            guard let content = await selectedTextService.readSelectedText() else {
+                showAlert("Could not read selected text. You can also enable the QRNative Services shortcut in System Settings.")
+                return
+            }
+
+            generateFromServiceText(content)
+        }
+    }
+
+    func recognizeQRCodeFromScreenshot() {
+        statusMessage = "Select a screenshot area"
+
+        Task { [weak self] in
+            guard let self else {
+                return
+            }
+
+            do {
+                guard let data = try await screenshotCaptureService.captureInteractivePNGData() else {
+                    statusMessage = "Screenshot canceled"
+                    return
+                }
+
+                guard let image = NSImage(data: data) else {
+                    showAlert("Unable to read the screenshot.")
+                    return
+                }
+
+                recognizeScreenshot(image)
+            } catch {
+                showAlert(error.localizedDescription)
+            }
+        }
+    }
+
+    func presentHistoryQRCode(_ record: QRCodeRecord) {
+        do {
+            let image = try generator.nsImage(for: record.content, correctionLevel: record.correctionLevel, sideLength: 900)
+            floatingPresenter.showQRCode(image: image, content: record.content)
+        } catch {
+            showAlert(error.localizedDescription)
+        }
+    }
+
+    func activateMainWindow() {
+        NSApp.activate(ignoringOtherApps: true)
+        for window in NSApp.windows where window.canBecomeMain {
+            window.makeKeyAndOrderFront(nil)
+            return
         }
     }
 
@@ -400,6 +518,23 @@ final class AppState: ObservableObject {
         }
     }
 
+    func recognizeScreenshot(_ image: NSImage) {
+        do {
+            selectedRecognitionImage = image
+            recognizedResults = try recognizer.recognize(in: image)
+            floatingPresenter.showRecognition(results: recognizedResults)
+
+            if let payload = recognizedResults.first?.payload {
+                clipboard.writeString(payload)
+                statusMessage = "Recognized screenshot QR code and copied text"
+            } else {
+                statusMessage = "No QR code found in screenshot"
+            }
+        } catch {
+            showAlert(error.localizedDescription)
+        }
+    }
+
     func useRecognizedPayload(_ payload: String) {
         inputText = payload
         generate(content: payload, source: .recognized, saveToHistory: settings.saveRecognizedToHistory)
@@ -471,15 +606,12 @@ final class AppState: ObservableObject {
     }
 
     private func updateGlobalHotKeyRegistration() {
-        guard settings.globalShortcutEnabled else {
-            hotKeyManager?.unregister()
-            hotKeyManager = nil
-            hotKeyStatus = "Global shortcut off"
-            return
-        }
+        hotKeyManager?.unregister()
+        hotKeyManager = nil
 
-        guard hotKeyManager == nil else {
-            hotKeyStatus = "Global shortcut: ^⌥⌘Q"
+        guard settings.globalShortcutEnabled else {
+            clipboardHotKeyStatus = "Clipboard: off"
+            refreshHotKeyStatus()
             return
         }
 
@@ -487,12 +619,66 @@ final class AppState: ObservableObject {
             self?.generateFromClipboard()
         }
 
-        if manager.register() {
-            hotKeyStatus = "Global shortcut: ^⌥⌘Q"
+        if manager.register(shortcut: settings.globalShortcut) {
+            clipboardHotKeyStatus = "Clipboard: \(settings.globalShortcut.displayString)"
             hotKeyManager = manager
         } else {
-            hotKeyStatus = "Global shortcut unavailable; app shortcut: ⇧⌘V"
+            clipboardHotKeyStatus = "Clipboard shortcut unavailable"
         }
+
+        refreshHotKeyStatus()
+    }
+
+    private func updateSelectionHotKeyRegistration() {
+        selectionHotKeyManager?.unregister()
+        selectionHotKeyManager = nil
+
+        guard settings.selectionShortcutEnabled else {
+            selectionHotKeyStatus = "Selection: off"
+            refreshHotKeyStatus()
+            return
+        }
+
+        let manager = GlobalHotKeyManager { [weak self] in
+            self?.generateFloatingQRCodeFromSelectedText()
+        }
+
+        if manager.register(shortcut: settings.selectionShortcut) {
+            selectionHotKeyStatus = "Selection: \(settings.selectionShortcut.displayString)"
+            selectionHotKeyManager = manager
+        } else {
+            selectionHotKeyStatus = "Selection shortcut unavailable"
+        }
+
+        refreshHotKeyStatus()
+    }
+
+    private func updateScreenshotHotKeyRegistration() {
+        screenshotHotKeyManager?.unregister()
+        screenshotHotKeyManager = nil
+
+        guard settings.screenshotShortcutEnabled else {
+            screenshotHotKeyStatus = "Screenshot: off"
+            refreshHotKeyStatus()
+            return
+        }
+
+        let manager = GlobalHotKeyManager { [weak self] in
+            self?.recognizeQRCodeFromScreenshot()
+        }
+
+        if manager.register(shortcut: settings.screenshotShortcut) {
+            screenshotHotKeyStatus = "Screenshot: \(settings.screenshotShortcut.displayString)"
+            screenshotHotKeyManager = manager
+        } else {
+            screenshotHotKeyStatus = "Screenshot shortcut unavailable"
+        }
+
+        refreshHotKeyStatus()
+    }
+
+    private func refreshHotKeyStatus() {
+        hotKeyStatus = "\(clipboardHotKeyStatus) · \(selectionHotKeyStatus) · \(screenshotHotKeyStatus)"
     }
 
     private func installServicesProvider() {
