@@ -60,10 +60,20 @@ open .build/QRNative.app
 
 The app bundle includes the generated `Resources/QRNative.icns` icon.
 
+## Build a DMG Installer
+
+```bash
+./scripts/build-app.sh release
+./scripts/build-dmg.sh
+open .build/QRNative-macOS.dmg
+```
+
+The DMG contains `QRNative.app` and an `/Applications` shortcut for drag-and-drop installation.
+
 ## CI/CD
 
 - CI: `.github/workflows/ci.yml` runs build, tests, and app bundle creation for pushes and pull requests.
-- Release: `.github/workflows/release.yml` runs on `v*` tags, packages `.build/QRNative.app` as a zip, generates a SHA-256 checksum, and publishes both to GitHub Releases.
+- Release: `.github/workflows/release.yml` runs on `v*` tags, packages `.build/QRNative.app` as DMG and zip artifacts, generates SHA-256 checksums, and publishes them to GitHub Releases.
 - Release checklist: `docs/RELEASE.md`
 
 ## Settings

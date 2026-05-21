@@ -85,6 +85,7 @@
 - [x] Add changelog.
 - [x] Add GitHub Actions CI.
 - [x] Add GitHub Actions release workflow for tag-based artifacts.
+- [x] Add DMG packaging for user installation.
 - [x] Add issue templates and pull request template.
 - [x] Add Dependabot configuration for GitHub Actions.
 - [x] Add EditorConfig.

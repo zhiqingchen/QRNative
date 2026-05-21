@@ -62,10 +62,12 @@ Settings currently control:
 
 `scripts/build-app.sh` builds the SwiftPM executable into `.build/QRNative.app`, copies `Resources/Info.plist`, and includes `Resources/QRNative.icns` when present.
 
+`scripts/build-dmg.sh` packages `.build/QRNative.app` into `.build/QRNative-macOS.dmg` with an `/Applications` shortcut for drag-and-drop installation.
+
 `scripts/generate-brand-assets.swift` regenerates the README PNG logo and macOS `.icns` app icon from native drawing code. The source logo remains editable in `Assets/Brand/qrnative-logo.svg`.
 
 ## CI/CD
 
 - CI workflow: build, test, and app bundle smoke packaging on push and pull request.
-- Release workflow: on `v*` tags or manual dispatch, test, build release, zip `.app`, generate checksum, and publish GitHub Release artifacts.
+- Release workflow: on `v*` tags or manual dispatch, test, build release, package zip and DMG artifacts, generate checksums, and publish GitHub Release artifacts.
 - Signing and notarization are intentionally left as future work until Apple Developer credentials are available in repository secrets.

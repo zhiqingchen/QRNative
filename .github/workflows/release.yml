@@ -33,13 +33,18 @@ jobs:
       - name: Package app
         run: |
           ditto -c -k --keepParent .build/QRNative.app .build/QRNative-macOS.zip
+          ./scripts/build-dmg.sh
+          ./scripts/validate-dmg.sh
           shasum -a 256 .build/QRNative-macOS.zip > .build/QRNative-macOS.zip.sha256
+          shasum -a 256 .build/QRNative-macOS.dmg > .build/QRNative-macOS.dmg.sha256
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
           name: QRNative-macOS
           path: |
+            .build/QRNative-macOS.dmg
+            .build/QRNative-macOS.dmg.sha256
             .build/QRNative-macOS.zip
             .build/QRNative-macOS.zip.sha256
 
@@ -49,6 +54,7 @@ jobs:
         with:
           generate_release_notes: true
           files: |
+            .build/QRNative-macOS.dmg
+            .build/QRNative-macOS.dmg.sha256
             .build/QRNative-macOS.zip
             .build/QRNative-macOS.zip.sha256
-
