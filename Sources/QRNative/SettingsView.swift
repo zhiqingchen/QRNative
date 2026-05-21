@@ -89,17 +89,47 @@ private struct ShortcutSettingsPane: View {
 
             Divider()
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Services")
-                    .font(.headline)
-                Text("Use selected text or selected images from other apps through Right Click > Services > QRNative.")
-                Text("Configure service shortcuts in System Settings > Keyboard > Keyboard Shortcuts > Services.")
-            }
+            HStack(alignment: .top, spacing: 14) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Services")
+                        .font(.headline)
+                    Text("Use selected text or selected images from other apps through Right Click > Services > QRNative.")
+                    Text("Configure service shortcuts in System Settings > Keyboard > Keyboard Shortcuts > Services.")
+                }
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Button {
+                    SystemSettingsOpener.openKeyboardShortcuts()
+                } label: {
+                    Label("Open", systemImage: "arrow.up.forward.app")
+                }
+            }
         }
         .formStyle(.grouped)
         .padding(20)
+    }
+}
+
+private enum SystemSettingsOpener {
+    static func openKeyboardShortcuts() {
+        let urls = [
+            "x-apple.systempreferences:com.apple.Keyboard-Settings.extension?Shortcuts",
+            "x-apple.systempreferences:com.apple.preference.keyboard?Shortcuts",
+            "x-apple.systempreferences:com.apple.Keyboard-Settings.extension"
+        ]
+
+        for value in urls {
+            guard let url = URL(string: value) else {
+                continue
+            }
+
+            if NSWorkspace.shared.open(url) {
+                return
+            }
+        }
     }
 }
 
