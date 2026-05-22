@@ -23,7 +23,7 @@ struct ContentView: View {
         } message: {
             Text(state.alertMessage ?? "")
         }
-        .onChange(of: state.selectedRecordID) {
+        .onChange(of: state.selectedRecordID) { _ in
             state.loadSelectedRecord()
         }
     }
@@ -113,10 +113,10 @@ private struct HistorySidebar: View {
                 .padding(.bottom, 10)
 
             if state.filteredRecords.isEmpty {
-                ContentUnavailableView(
-                    state.historyStore.records.isEmpty ? "No History" : "No Matches",
+                EmptyStateView(
+                    title: state.historyStore.records.isEmpty ? "No History" : "No Matches",
                     systemImage: "qrcode.viewfinder",
-                    description: Text(state.historyStore.records.isEmpty ? "Generated and recognized QR codes appear here." : "Try a different history search.")
+                    description: state.historyStore.records.isEmpty ? "Generated and recognized QR codes appear here." : "Try a different history search."
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -163,7 +163,7 @@ private struct HistorySidebar: View {
             .padding(.vertical, 8)
             .background(.bar)
         }
-        .onChange(of: state.focusRequest) { _, request in
+        .onChange(of: state.focusRequest) { request in
             if request == .search {
                 searchFocused = true
             }
@@ -313,10 +313,10 @@ private struct GeneratorView: View {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
                             .stroke(.separator)
                     }
-                    .onChange(of: state.inputText) {
+                    .onChange(of: state.inputText) { _ in
                         state.schedulePreviewRefresh()
                     }
-                    .onChange(of: state.correctionLevel) {
+                    .onChange(of: state.correctionLevel) { _ in
                         state.refreshPreviewForCurrentInput()
                     }
 
@@ -389,7 +389,7 @@ private struct GeneratorView: View {
         .onAppear {
             inputFocused = true
         }
-        .onChange(of: state.focusRequest) { _, request in
+        .onChange(of: state.focusRequest) { request in
             if request == .input {
                 inputFocused = true
             }
@@ -438,10 +438,10 @@ private struct QRPreviewPane: View {
                         .padding(28)
                         .accessibilityLabel("Generated QR code")
                 } else {
-                    ContentUnavailableView(
-                        "No QR Code",
+                    EmptyStateView(
+                        title: "No QR Code",
                         systemImage: "qrcode",
-                        description: Text("Enter text or use the clipboard shortcut.")
+                        description: "Enter text or use the clipboard shortcut."
                     )
                 }
             }
@@ -492,10 +492,10 @@ private struct RecognizerView: View {
                             .padding(18)
                             .accessibilityLabel("Image selected for QR recognition")
                     } else {
-                        ContentUnavailableView(
-                            "Drop an Image",
+                        EmptyStateView(
+                            title: "Drop an Image",
                             systemImage: "photo.badge.plus",
-                            description: Text("Open, paste, or drag an image containing QR codes.")
+                            description: "Open, paste, or drag an image containing QR codes."
                         )
                     }
                 }
@@ -536,10 +536,10 @@ private struct RecognitionResultsPane: View {
                 .font(.headline)
 
             if state.recognizedResults.isEmpty {
-                ContentUnavailableView(
-                    "No Results",
+                EmptyStateView(
+                    title: "No Results",
                     systemImage: "text.viewfinder",
-                    description: Text("Recognized QR payloads appear here.")
+                    description: "Recognized QR payloads appear here."
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {

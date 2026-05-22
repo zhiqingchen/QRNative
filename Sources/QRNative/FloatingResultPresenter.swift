@@ -117,10 +117,10 @@ private struct FloatingQRCodeView: View {
                         }
                         .shadow(color: .black.opacity(0.14), radius: 18, y: 8)
                 } else {
-                    ContentUnavailableView(
-                        "No QR Code",
+                    EmptyStateView(
+                        title: "No QR Code",
                         systemImage: "qrcode",
-                        description: Text(generationError ?? "Enter content to generate a QR code.")
+                        description: generationError ?? "Enter content to generate a QR code."
                     )
                 }
             }
@@ -150,7 +150,7 @@ private struct FloatingQRCodeView: View {
                         RoundedRectangle(cornerRadius: 7, style: .continuous)
                             .stroke(.separator.opacity(0.45), lineWidth: 1)
                     }
-                    .onChange(of: editableContent) {
+                    .onChange(of: editableContent) { _ in
                         refreshPreview()
                     }
             }
@@ -219,10 +219,10 @@ private struct FloatingRecognitionView: View {
             }
 
             if results.isEmpty {
-                ContentUnavailableView(
-                    "No QR Code Found",
+                EmptyStateView(
+                    title: "No QR Code Found",
                     systemImage: "qrcode.viewfinder",
-                    description: Text("Try a clearer image or a larger selection.")
+                    description: "Try a clearer image or a larger selection."
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
