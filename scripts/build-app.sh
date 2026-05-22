@@ -23,17 +23,20 @@ fi
 chmod +x "$APP_DIR/Contents/MacOS/QRNative"
 touch "$APP_DIR"
 
-# Code sign with a stable identity so macOS keeps Accessibility (and other TCC)
-# grants across rebuilds. Defaults to the local self-signed cert; override with
-# CODESIGN_IDENTITY (e.g. an "Apple Development: ..." identity) if you prefer.
+# Code sign the whole bundle so its resources are sealed. Without a sealed
+# signature, a quarantined download is reported by Gatekeeper as "damaged" and
+# refuses to open. Prefer a stable identity (keeps Accessibility/TCC grants
+# across rebuilds; override with CODESIGN_IDENTITY for an "Apple Development:"
+# or "Developer ID" cert). When that cert is absent (e.g. on CI), fall back to
+# an ad-hoc signature, which needs no certificate but still seals the bundle.
 CODESIGN_IDENTITY="${CODESIGN_IDENTITY:-QRNative Local Codesign}"
-if security find-certificate -c "$CODESIGN_IDENTITY" >/dev/null 2>&1 || [[ "$CODESIGN_IDENTITY" == "-" ]]; then
-  codesign --force --sign "$CODESIGN_IDENTITY" \
-    --identifier "dev.local.QRNative" \
-    "$APP_DIR" >&2
-  echo "Signed with: $CODESIGN_IDENTITY" >&2
-else
-  echo "WARNING: signing identity '$CODESIGN_IDENTITY' not found; app left unsigned." >&2
+if [[ "$CODESIGN_IDENTITY" != "-" ]] && ! security find-certificate -c "$CODESIGN_IDENTITY" >/dev/null 2>&1; then
+  echo "Signing identity '$CODESIGN_IDENTITY' not found; falling back to ad-hoc signature." >&2
+  CODESIGN_IDENTITY="-"
 fi
+codesign --force --sign "$CODESIGN_IDENTITY" \
+  --identifier "dev.local.QRNative" \
+  "$APP_DIR" >&2
+echo "Signed with: $CODESIGN_IDENTITY" >&2
 
 echo "$APP_DIR"

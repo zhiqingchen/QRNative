@@ -26,6 +26,21 @@ QRNative turns text, clipboard content, selected text, screenshots, and image fi
 - Handle multiple recognized QR codes in one image, then copy, open, or regenerate from the decoded payload.
 - Use app shortcuts, configurable global shortcuts, and macOS Services for selected text and selected image workflows.
 
+## Download
+
+Grab the latest `QRNative-macOS.dmg` (or `.zip`) from the [Releases](https://github.com/zhiqingchen/QRNative/releases) page, open the DMG, and drag `QRNative.app` into `/Applications`.
+
+The release build is ad-hoc signed but not notarized (no paid Apple Developer account), so the first launch is gated by Gatekeeper. This is a one-time step:
+
+- **System Settings → Privacy & Security**, scroll down, and click **Open Anyway** next to QRNative, or
+- run once in Terminal:
+
+  ```bash
+  xattr -dr com.apple.quarantine /Applications/QRNative.app
+  ```
+
+If macOS reports the app as "damaged", you are on an older build that predates the sealed-signature fix — re-download the latest release.
+
 ## Requirements
 
 - macOS 14 or newer
