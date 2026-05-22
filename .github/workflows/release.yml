@@ -39,7 +39,7 @@ jobs:
           shasum -a 256 .build/QRNative-macOS.dmg > .build/QRNative-macOS.dmg.sha256
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: QRNative-macOS
           path: |
