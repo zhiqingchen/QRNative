@@ -6,9 +6,9 @@ import SwiftUI
 final class FloatingResultPresenter {
     private var panel: NSPanel?
 
-    func showQRCode(image: NSImage, content: String) {
-        let view = FloatingQRCodeView(image: image, content: content)
-        show(rootView: view, size: NSSize(width: 380, height: 500))
+    func showQRCode(image: NSImage, content: String, correctionLevel: QRCorrectionLevel = .medium) {
+        let view = FloatingQRCodeView(image: image, content: content, correctionLevel: correctionLevel)
+        show(rootView: view, size: NSSize(width: 400, height: 580))
     }
 
     func showRecognition(results: [RecognizedQRCode]) {
@@ -21,7 +21,7 @@ final class FloatingResultPresenter {
 
         let panel = NSPanel(
             contentRect: NSRect(origin: .zero, size: size),
-            styleMask: [.titled, .closable, .utilityWindow, .fullSizeContentView, .nonactivatingPanel],
+            styleMask: [.titled, .closable, .utilityWindow, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -34,11 +34,10 @@ final class FloatingResultPresenter {
         panel.isReleasedWhenClosed = false
         panel.level = .floating
         panel.hidesOnDeactivate = false
-        panel.becomesKeyOnlyIfNeeded = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.contentView = NSHostingView(rootView: rootView)
         panel.setFrameOrigin(origin(for: size))
-        panel.orderFrontRegardless()
+        panel.makeKeyAndOrderFront(nil)
 
         self.panel = panel
     }
@@ -66,8 +65,19 @@ final class FloatingResultPresenter {
 }
 
 private struct FloatingQRCodeView: View {
-    let image: NSImage
-    let content: String
+    @State private var editableContent: String
+    @State private var previewImage: NSImage?
+    @State private var generationError: String?
+
+    let correctionLevel: QRCorrectionLevel
+
+    private let generator = QRCodeGenerator()
+
+    init(image: NSImage, content: String, correctionLevel: QRCorrectionLevel) {
+        self.correctionLevel = correctionLevel
+        _editableContent = State(initialValue: content)
+        _previewImage = State(initialValue: image)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -81,7 +91,7 @@ private struct FloatingQRCodeView: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text("QR Code")
                         .font(.headline)
-                    Text("Ready to share")
+                    Text("Edit before sharing")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -93,20 +103,28 @@ private struct FloatingQRCodeView: View {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .fill(Color(nsColor: .windowBackgroundColor).opacity(0.62))
 
-                Image(nsImage: image)
-                    .interpolation(.none)
-                    .resizable()
-                    .scaledToFit()
-                    .padding(18)
-                    .frame(width: 272, height: 272)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(.black.opacity(0.08), lineWidth: 1)
-                    }
-                    .shadow(color: .black.opacity(0.14), radius: 18, y: 8)
+                if let previewImage {
+                    Image(nsImage: previewImage)
+                        .interpolation(.none)
+                        .resizable()
+                        .scaledToFit()
+                        .padding(16)
+                        .frame(width: 252, height: 252)
+                        .background(.white, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(.black.opacity(0.08), lineWidth: 1)
+                        }
+                        .shadow(color: .black.opacity(0.14), radius: 18, y: 8)
+                } else {
+                    ContentUnavailableView(
+                        "No QR Code",
+                        systemImage: "qrcode",
+                        description: Text(generationError ?? "Enter content to generate a QR code.")
+                    )
+                }
             }
-            .frame(maxWidth: .infinity, minHeight: 304)
+            .frame(maxWidth: .infinity, minHeight: 282)
             .overlay {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .stroke(.white.opacity(0.10), lineWidth: 1)
@@ -117,18 +135,24 @@ private struct FloatingQRCodeView: View {
                     Text("Content")
                         .fontWeight(.semibold)
                     Spacer()
-                    Text("\(content.count) chars")
+                    Text("\(editableContent.count) chars")
                         .foregroundStyle(.tertiary)
                 }
                 .font(.caption)
 
-                Text(content)
+                TextEditor(text: $editableContent)
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(4)
-                    .truncationMode(.middle)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .scrollContentBackground(.hidden)
+                    .padding(6)
+                    .frame(height: 92)
+                    .background(Color(nsColor: .textBackgroundColor).opacity(0.72), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .stroke(.separator.opacity(0.45), lineWidth: 1)
+                    }
+                    .onChange(of: editableContent) {
+                        refreshPreview()
+                    }
             }
             .padding(12)
             .background(Color(nsColor: .controlBackgroundColor).opacity(0.70), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
@@ -140,18 +164,22 @@ private struct FloatingQRCodeView: View {
             HStack(spacing: 8) {
                 Button {
                     NSPasteboard.general.clearContents()
-                    NSPasteboard.general.writeObjects([image])
+                    if let previewImage {
+                        NSPasteboard.general.writeObjects([previewImage])
+                    }
                 } label: {
                     Label("Copy Image", systemImage: "doc.on.doc")
                 }
                 .buttonStyle(.borderedProminent)
+                .disabled(previewImage == nil)
 
                 Button {
                     NSPasteboard.general.clearContents()
-                    NSPasteboard.general.setString(content, forType: .string)
+                    NSPasteboard.general.setString(editableContent, forType: .string)
                 } label: {
                     Label("Copy Text", systemImage: "text.badge.checkmark")
                 }
+                .disabled(editableContent.isEmpty)
             }
             .controlSize(.large)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -159,6 +187,16 @@ private struct FloatingQRCodeView: View {
         .padding(18)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.regularMaterial)
+    }
+
+    private func refreshPreview() {
+        do {
+            previewImage = try generator.nsImage(for: editableContent, correctionLevel: correctionLevel, sideLength: 900)
+            generationError = nil
+        } catch {
+            previewImage = nil
+            generationError = error.localizedDescription
+        }
     }
 }
 

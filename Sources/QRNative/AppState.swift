@@ -168,7 +168,7 @@ final class AppState: ObservableObject {
         generate(content: content, source: .clipboard, saveToHistory: settings.saveClipboardToHistory)
 
         if let generatedImage {
-            floatingPresenter.showQRCode(image: generatedImage, content: content)
+            floatingPresenter.showQRCode(image: generatedImage, content: content, correctionLevel: correctionLevel)
         }
 
         if settings.bringToFrontAfterClipboard {
@@ -203,7 +203,7 @@ final class AppState: ObservableObject {
                 selectedRecordID = record.id
             }
 
-            floatingPresenter.showQRCode(image: image, content: content)
+            floatingPresenter.showQRCode(image: image, content: content, correctionLevel: correctionLevel)
         } catch {
             showAlert(error.localizedDescription)
         }
@@ -260,7 +260,7 @@ final class AppState: ObservableObject {
     func presentHistoryQRCode(_ record: QRCodeRecord) {
         do {
             let image = try generator.nsImage(for: record.content, correctionLevel: record.correctionLevel, sideLength: 900)
-            floatingPresenter.showQRCode(image: image, content: record.content)
+            floatingPresenter.showQRCode(image: image, content: record.content, correctionLevel: record.correctionLevel)
         } catch {
             showAlert(error.localizedDescription)
         }
