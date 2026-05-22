@@ -134,7 +134,7 @@ The app bundle includes `Resources/QRNative.icns`. The DMG contains `QRNative.ap
 
 ## Brand Assets
 
-- Logo source: `Assets/Brand/qrnative-logo.svg`
+- Logo source: `Assets/Brand/qrnative-logo-source.png`
 - README logo: `Assets/Brand/qrnative-logo.png`
 - App icon: `Resources/QRNative.icns`
 - Brand guide: `docs/BRANDING.md`

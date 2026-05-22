@@ -7,6 +7,8 @@ import Foundation
 let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 let resourcesURL = root.appendingPathComponent("Resources", isDirectory: true)
 let brandURL = root.appendingPathComponent("Assets/Brand", isDirectory: true)
+let sourceLogoURL = brandURL.appendingPathComponent("qrnative-logo-source.png")
+let readmeLogoURL = brandURL.appendingPathComponent("qrnative-logo.png")
 let iconsetURL = resourcesURL.appendingPathComponent("QRNative.iconset", isDirectory: true)
 
 try FileManager.default.createDirectory(at: resourcesURL, withIntermediateDirectories: true)
@@ -14,66 +16,60 @@ try FileManager.default.createDirectory(at: brandURL, withIntermediateDirectorie
 try? FileManager.default.removeItem(at: iconsetURL)
 try FileManager.default.createDirectory(at: iconsetURL, withIntermediateDirectories: true)
 
-func drawIcon(size: Int) -> NSImage {
-    let image = NSImage(size: NSSize(width: size, height: size))
-    image.lockFocus()
-
-    guard let context = NSGraphicsContext.current?.cgContext else {
-        image.unlockFocus()
-        return image
-    }
-
-    let scale = CGFloat(size) / 1024
-    context.scaleBy(x: scale, y: scale)
-
-    let bounds = CGRect(x: 0, y: 0, width: 1024, height: 1024)
-    context.clear(bounds)
-
-    let background = NSBezierPath(roundedRect: CGRect(x: 128, y: 128, width: 768, height: 768), xRadius: 192, yRadius: 192)
-    let gradient = NSGradient(colors: [
-        NSColor(red: 0.043, green: 0.063, blue: 0.125, alpha: 1),
-        NSColor(red: 0.067, green: 0.110, blue: 0.196, alpha: 1),
-        NSColor(red: 0.102, green: 0.176, blue: 0.322, alpha: 1)
-    ])!
-    gradient.draw(in: background, angle: -45)
-
-    context.saveGState()
-    background.addClip()
-
-    let beam = NSBezierPath()
-    beam.lineWidth = 34
-    beam.lineCapStyle = .round
-    beam.move(to: CGPoint(x: 336, y: 336))
-    beam.line(to: CGPoint(x: 688, y: 688))
-    NSColor(red: 0.918, green: 0.992, blue: 0.973, alpha: 0.72).setStroke()
-    beam.stroke()
-    context.restoreGState()
-
-    func finder(_ x: CGFloat, _ y: CGFloat) {
-        let path = NSBezierPath(roundedRect: CGRect(x: x, y: y, width: 150, height: 150), xRadius: 46, yRadius: 46)
-        path.lineWidth = 38
-        path.stroke()
-    }
-
-    NSColor(red: 0.918, green: 0.949, blue: 1.000, alpha: 1).setStroke()
-    finder(300, 574)
-    finder(574, 574)
-    finder(300, 300)
-
-    image.unlockFocus()
-    return image
+guard FileManager.default.fileExists(atPath: sourceLogoURL.path) else {
+    throw NSError(
+        domain: "QRNativeAssets",
+        code: 1,
+        userInfo: [NSLocalizedDescriptionKey: "Missing source logo at \(sourceLogoURL.path)"]
+    )
 }
 
-func writePNG(_ image: NSImage, to url: URL) throws {
+guard let sourceLogo = NSImage(contentsOf: sourceLogoURL) else {
+    throw NSError(
+        domain: "QRNativeAssets",
+        code: 2,
+        userInfo: [NSLocalizedDescriptionKey: "Unable to load source logo at \(sourceLogoURL.path)"]
+    )
+}
+
+func pngData(size: Int) throws -> Data {
     guard
-        let tiff = image.tiffRepresentation,
-        let bitmap = NSBitmapImageRep(data: tiff),
-        let data = bitmap.representation(using: .png, properties: [:])
+        let bitmap = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: size,
+            pixelsHigh: size,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bitmapFormat: [.alphaFirst],
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        ),
+        let context = NSGraphicsContext(bitmapImageRep: bitmap)
     else {
         throw NSError(domain: "QRNativeAssets", code: 1)
     }
 
-    try data.write(to: url, options: [.atomic])
+    bitmap.size = NSSize(width: size, height: size)
+
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = context
+    context.cgContext.clear(CGRect(x: 0, y: 0, width: size, height: size))
+    context.imageInterpolation = .high
+    sourceLogo.draw(in: CGRect(x: 0, y: 0, width: size, height: size), from: .zero, operation: .sourceOver, fraction: 1)
+    NSGraphicsContext.restoreGraphicsState()
+
+    guard let data = bitmap.representation(using: .png, properties: [:]) else {
+        throw NSError(domain: "QRNativeAssets", code: 3)
+    }
+
+    return data
+}
+
+func writePNG(size: Int, to url: URL) throws {
+    try pngData(size: size).write(to: url, options: [.atomic])
 }
 
 let iconFiles: [(String, Int)] = [
@@ -90,10 +86,10 @@ let iconFiles: [(String, Int)] = [
 ]
 
 for (name, size) in iconFiles {
-    try writePNG(drawIcon(size: size), to: iconsetURL.appendingPathComponent(name))
+    try writePNG(size: size, to: iconsetURL.appendingPathComponent(name))
 }
 
-try writePNG(drawIcon(size: 512), to: brandURL.appendingPathComponent("qrnative-logo.png"))
+try writePNG(size: 1024, to: readmeLogoURL)
 
 let process = Process()
 process.executableURL = URL(fileURLWithPath: "/usr/bin/iconutil")
@@ -110,4 +106,4 @@ guard process.terminationStatus == 0 else {
 }
 
 try? FileManager.default.removeItem(at: iconsetURL)
-print("Generated Resources/QRNative.icns and Assets/Brand/qrnative-logo.png")
+print("Generated Resources/QRNative.icns and Assets/Brand/qrnative-logo.png from Assets/Brand/qrnative-logo-source.png")

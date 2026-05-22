@@ -72,7 +72,7 @@ The screenshot recognition shortcut opens the system region capture UI, sends th
 
 `scripts/build-dmg.sh` packages `.build/QRNative.app` into `.build/QRNative-macOS.dmg` with an `/Applications` shortcut for drag-and-drop installation.
 
-`scripts/generate-brand-assets.swift` regenerates the README PNG logo and macOS `.icns` app icon from native drawing code. The source logo remains editable in `Assets/Brand/qrnative-logo.svg`.
+`scripts/generate-brand-assets.swift` regenerates the README PNG logo and macOS `.icns` app icon from `Assets/Brand/qrnative-logo-source.png`.
 
 ## CI/CD
 

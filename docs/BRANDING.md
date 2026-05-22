@@ -6,9 +6,9 @@ Use `QRNative` as the product and repository name.
 
 ## Logo
 
-- Source SVG: `Assets/Brand/qrnative-logo.svg`
+- Source PNG: `Assets/Brand/qrnative-logo-source.png`
 - App icon: `Resources/QRNative.icns`
-- Style: minimal abstract macOS utility mark, rounded square, three QR-inspired finder nodes, one quiet scan line.
+- Style: abstract scanner mark with rounded QR-inspired forms, orbiting scan arcs, and a purple-to-cyan gradient.
 
 ## Colors
 
@@ -21,7 +21,7 @@ Use `QRNative` as the product and repository name.
 ## Usage
 
 - Use the generated PNG in the README so GitHub renders it consistently.
-- Use the SVG as the editable source for brand and web contexts that need vector output.
+- Use the source PNG when regenerating derived brand assets.
 - Prefer the `.icns` file for app bundles.
 - Keep clear space around the mark equal to at least 12% of the logo width.
 - Do not place the logo on busy backgrounds.
