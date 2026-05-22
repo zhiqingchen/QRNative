@@ -4,6 +4,7 @@ All notable changes to QRNative will be documented here.
 
 ## Unreleased
 
+- Ship a universal binary so the app runs on both Apple Silicon and Intel Macs.
 - Initial native macOS SwiftUI app.
 - Added QR generation from typed text and clipboard text.
 - Added searchable local history stored in Application Support.

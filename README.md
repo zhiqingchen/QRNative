@@ -43,7 +43,7 @@ If macOS reports the app as "damaged", you are on an older build that predates t
 
 ## Requirements
 
-- macOS 14 or newer
+- macOS 13 (Ventura) or newer — universal binary (Apple Silicon & Intel)
 - Xcode command line tools
 - Swift 6
 

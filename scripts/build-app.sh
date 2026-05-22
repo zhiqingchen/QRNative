@@ -6,9 +6,12 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT_DIR"
 
-swift build -c "$CONFIGURATION"
+# Ship a universal binary so the app runs on both Apple Silicon and Intel Macs.
+ARCH_FLAGS=(--arch arm64 --arch x86_64)
 
-BIN_DIR="$(swift build -c "$CONFIGURATION" --show-bin-path)"
+swift build -c "$CONFIGURATION" "${ARCH_FLAGS[@]}"
+
+BIN_DIR="$(swift build -c "$CONFIGURATION" "${ARCH_FLAGS[@]}" --show-bin-path)"
 APP_DIR="$ROOT_DIR/.build/QRNative.app"
 
 rm -rf "$APP_DIR"
