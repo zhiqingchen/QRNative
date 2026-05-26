@@ -24,9 +24,6 @@ jobs:
       - name: Test
         run: swift test
 
-      - name: Generate brand assets
-        run: ./scripts/generate-brand-assets.swift
-
       - name: Build app bundle
         run: ./scripts/build-app.sh release
 
